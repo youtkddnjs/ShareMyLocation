@@ -4,8 +4,21 @@ plugins {
 }
 
 android {
+    signingConfigs{
+        create("myDebug"){
+            storeFile = file("sharemylocation.jks")
+            storePassword = "sharemylocation"
+            keyAlias = "key0"
+            keyPassword = "sharemylocation"
+        }
+        buildTypes {
+            getByName("debug") {
+                signingConfig = signingConfigs.getByName("myDebug")
+            }
+        }
+    }
     namespace = "mhha.sample.sharemylocation"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "mhha.sample.sharemylocation"
@@ -33,6 +46,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    viewBinding{
+        enable = true
+    }
 }
 
 dependencies {
@@ -44,4 +60,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    implementation ("com.kakao.sdk:v2-all:2.18.0") // 전체 모듈 설치, 2.11.0 버전부터 지원
+    implementation ("com.kakao.sdk:v2-user:2.18.0") // 카카오 로그인
+
 }
