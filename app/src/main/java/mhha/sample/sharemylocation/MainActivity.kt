@@ -1,5 +1,6 @@
 package mhha.sample.sharemylocation
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +17,8 @@ class MainActivity : AppCompatActivity() {
 
         var keyHash = Utility.getKeyHash(this)
         Log.i("kakao_keHash", "${keyHash}")
+
+        startActivity(Intent(this,LoginActivity::class.java))
 
     }//override fun onCreate(savedInstanceState: Bundle?)
 }//class MainActivity : AppCompatActivity()
