@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -64,4 +66,8 @@ dependencies {
     implementation ("com.kakao.sdk:v2-all:2.18.0") // 전체 모듈 설치, 2.11.0 버전부터 지원
     implementation ("com.kakao.sdk:v2-user:2.18.0") // 카카오 로그인
 
+    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+
+    //google map
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
 }

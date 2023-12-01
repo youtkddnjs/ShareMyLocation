@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "88013362079",
+    "project_id": "share-my-lcation",
+    "storage_bucket": "share-my-lcation.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88013362079:android:bffebc08a1112d6677e3aa",
+        "android_client_info": {
+          "package_name": "mhha.sample.sharemylocation"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_Ox0_epcqYBxhyjsKmNZaqp_lG4RYd6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
