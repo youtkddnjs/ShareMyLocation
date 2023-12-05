@@ -49,6 +49,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".EmailLoginActivity"
+            android:exported="true">
+        </activity>
+
     </application>
 
 </manifest>
