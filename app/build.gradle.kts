@@ -71,6 +71,9 @@ dependencies {
     //google map
     implementation("com.google.android.gms:play-services-maps:18.1.0")
 
+    //google location
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
 
