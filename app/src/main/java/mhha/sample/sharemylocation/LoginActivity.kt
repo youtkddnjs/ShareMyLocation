@@ -7,10 +7,15 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.maps.model.Marker
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.auth
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.database
+import com.kakao.sdk.auth.AuthApiClient
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.KakaoSdk
 import com.kakao.sdk.common.model.ClientError
@@ -24,6 +29,7 @@ class LoginActivity: AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var emailLoginResult: ActivityResultLauncher<Intent>
     private lateinit var pandingUser: User
+
 
     private val callback:(OAuthToken?, Throwable?) -> Unit = { token, error ->
         if(error != null){
@@ -44,6 +50,21 @@ class LoginActivity: AppCompatActivity() {
         setContentView(binding.root)
 
         KakaoSdk.init(this, "13ef04ff0eb8c75f0ba0dbe7297942c1")
+
+
+        //Firebase에 로그인 되어 있는 경우
+        if( Firebase.auth.currentUser !=null ){
+            navigateToMapActivity()
+        }
+        //카카오톡 토큰이 있다면
+//        if( AuthApiClient.instance.hasToken()) {
+//            UserApiClient.instance.accessTokenInfo { tokenInfo, error ->
+//                if(error == null){
+//                    getKakaoAccountInfo()
+//                }
+//            }
+//        }
+
 
         emailLoginResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
             if(it.resultCode == RESULT_OK){
@@ -160,5 +181,4 @@ class LoginActivity: AppCompatActivity() {
     private fun showErrorToast(){
             Toast.makeText(this, "Login Fail", Toast.LENGTH_SHORT).show()
     }
-
 }//class LoginActivity: AppCompatActivity()

@@ -21,9 +21,13 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.database
 import com.kakao.sdk.common.util.Utility
 import mhha.sample.sharemylocation.databinding.ActivityMapBinding
@@ -33,6 +37,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapBinding
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val markerMap = hashMapOf<String, Marker>()
 
     private val locationCallback = object: LocationCallback(){
         override fun onLocationResult(p0: LocationResult) {
@@ -86,10 +91,21 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         getRequestLocationPermission()
+        setupFirebaseDatabase()
 
 //        startActivity(Intent(this, LoginActivity::class.java))
 
     }//override fun onCreate(savedInstanceState: Bundle?)
+
+    override fun onResume() {
+        super.onResume()
+        getCurrentLocation()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
 
     override fun onMapReady(p0: GoogleMap) {
         googleMap = p0
@@ -139,5 +155,49 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         )//locationPermission.launch
     }//private fun getRequestLocationPermission()
+
+    private fun setupFirebaseDatabase(){
+        Firebase.database.reference.child("User")
+            .addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    val user = snapshot.getValue(MyUser::class.java) ?: return
+                    val uid = user.uid ?: return
+
+                    if( markerMap[uid] == null) {
+                        markerMap[uid]= makeNuwMarker(user,uid) ?: return
+                    }else{
+                        markerMap[uid]?.position = LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0)
+                    }
+                }
+
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    val user = snapshot.getValue(MyUser::class.java) ?: return
+                    val uid = user.uid ?: return
+                    if( markerMap[uid] == null) {
+                        markerMap[uid]= makeNuwMarker(user,uid) ?: return
+                    }else{
+                        markerMap[uid]?.position = LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0)
+                    }
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+
+            })
+    }//private fun setupFirebaseDatabase()
+
+    private fun makeNuwMarker(user : MyUser, uid : String): Marker? {
+        val marker = googleMap.addMarker(
+            MarkerOptions().position(LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0)).title(user.name.orEmpty())
+        ) ?: return null
+
+        return marker
+    }//private fun makeNuwMarker(user : MyUser, uid : String): Marker?
 
 }//class MainActivity : AppCompatActivity()
