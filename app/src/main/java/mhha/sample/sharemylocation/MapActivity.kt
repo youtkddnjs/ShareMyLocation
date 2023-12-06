@@ -3,6 +3,7 @@ package mhha.sample.sharemylocation
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
@@ -10,6 +11,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -20,6 +26,8 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -196,6 +204,29 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         val marker = googleMap.addMarker(
             MarkerOptions().position(LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0)).title(user.name.orEmpty())
         ) ?: return null
+
+        //마커에 이미지 넣기
+        Glide.with(this).asBitmap()
+            .load(user.profilePhoto)
+            .override(200)
+            .listener(object : RequestListener<Bitmap>{
+                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Bitmap>?, isFirstResource: Boolean): Boolean {
+                    return false
+                }
+
+                override fun onResourceReady(resource: Bitmap?, model: Any?, target: Target<Bitmap>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                    resource?.let {
+                        runOnUiThread {
+                            marker.setIcon(
+                                BitmapDescriptorFactory.fromBitmap(
+                                    resource
+                                )
+                            )//marker.setIcon
+                        }
+                    }
+                    return true
+                }
+            }).submit()
 
         return marker
     }//private fun makeNuwMarker(user : MyUser, uid : String): Marker?
