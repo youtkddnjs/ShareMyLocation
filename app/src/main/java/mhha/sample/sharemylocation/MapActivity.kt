@@ -22,6 +22,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.database.database
 import com.kakao.sdk.common.util.Utility
 import mhha.sample.sharemylocation.databinding.ActivityMapBinding
 
@@ -36,8 +39,16 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             //새로 요청된 위치 정보
             for(location in p0.locations){
                 Log.i("Location", "latitude : ${location.latitude} / longitude : ${location.longitude}")
-                location.latitude
-                location.longitude
+
+                //파이어 베이스의 위치값 업로드
+                val uid = Firebase.auth.currentUser?.uid.orEmpty()
+
+                val locationMap = mutableMapOf<String, Any>()
+                locationMap["latitude"] = location.latitude
+                locationMap["longitude"] = location.longitude
+                Firebase.database.reference.child("User").child(uid).updateChildren(locationMap)
+
+
             }//for(location in p0.locations)
         }//override fun onLocationResult(p0: LocationResult)
     }//private val locationCallback = object: LocationCallback()
@@ -82,13 +93,15 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(p0: GoogleMap) {
         googleMap = p0
-        val sydney = LatLng(37.56701355670135, 126.9783740)
-        googleMap.addMarker(
-            MarkerOptions()
-            .position(sydney)
-            .title("Marker in Sydney"))
-        googleMap.moveCamera(CameraUpdateFactory.zoomTo(18.0f))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+//        val sydney = LatLng(37.56701355670135, 126.9783740)
+//        googleMap.addMarker(
+//            MarkerOptions()
+//            .position(sydney)
+//            .title("Marker in Sydney"))
+//        googleMap.moveCamera(CameraUpdateFactory.zoomTo(18.0f))
+//        googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        googleMap.setMaxZoomPreference(20.0f)
+        googleMap.setMinZoomPreference(10.0f)
 
     }//override fun onMapReady(p0: GoogleMap)
 
@@ -111,6 +124,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             return
         }
         fusedLocationClient.requestLocationUpdates(locationinfo,locationCallback, Looper.getMainLooper())
+        fusedLocationClient.lastLocation.addOnSuccessListener {
+            googleMap.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 16.0f)
+            )
+        }
     }//private fun getCurrentLocation()
 
     private fun getRequestLocationPermission(){

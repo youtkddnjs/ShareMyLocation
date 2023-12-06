@@ -107,6 +107,7 @@ class LoginActivity: AppCompatActivity() {
 
     private fun checkKakaoUserData(user: User){
         var kakaoEmail = user.kakaoAccount?.email.orEmpty()
+        kakaoEmail="ccc@ccc.com"
         if(kakaoEmail.isEmpty()){
             Toast.makeText(this,"카카오 이메일이 없음",Toast.LENGTH_SHORT).show()
             pandingUser = user
@@ -123,8 +124,6 @@ class LoginActivity: AppCompatActivity() {
                 if(it.isSuccessful){
                     //다음 과정으로 넘어 갈 것.
                     updateFirebaseDatabase(user)
-                }else{
-                    showErrorToast()
                 }
             }.addOnFailureListener {
                 // 이미 가입된 계정
