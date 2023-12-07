@@ -30,6 +30,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -42,12 +43,13 @@ import com.google.firebase.database.database
 import com.kakao.sdk.common.util.Utility
 import mhha.sample.sharemylocation.databinding.ActivityMapBinding
 
-class MapActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {//class MainActivity : AppCompatActivity()
 
     private lateinit var binding: ActivityMapBinding
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val markerMap = hashMapOf<String, Marker>()
+    private var trackingUserId: String = ""
 
     private val locationCallback = object: LocationCallback(){
         override fun onLocationResult(p0: LocationResult) {
@@ -129,6 +131,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         googleMap.setMaxZoomPreference(20.0f)
         googleMap.setMinZoomPreference(10.0f)
 
+        googleMap.setOnMarkerClickListener(this)
+        googleMap.setOnMapClickListener {
+            trackingUserId = ""
+        }
+
     }//override fun onMapReady(p0: GoogleMap)
 
     fun createLocationRequest(): LocationRequest {
@@ -174,7 +181,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
                     val uid = user.uid ?: return
 
                     if( markerMap[uid] == null) {
-                        markerMap[uid]= makeNuwMarker(user,uid) ?: return
+                        markerMap[uid]= makeNewMarker(user,uid) ?: return
                     }else{
                         markerMap[uid]?.position = LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0)
                     }
@@ -184,9 +191,19 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
                     val user = snapshot.getValue(MyUser::class.java) ?: return
                     val uid = user.uid ?: return
                     if( markerMap[uid] == null) {
-                        markerMap[uid]= makeNuwMarker(user,uid) ?: return
+                        markerMap[uid]= makeNewMarker(user,uid) ?: return
                     }else{
                         markerMap[uid]?.position = LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0)
+                    }
+                    if(uid == trackingUserId){
+                        googleMap.animateCamera(
+                            CameraUpdateFactory.newCameraPosition(
+                                CameraPosition.Builder()
+                                    .target(LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0))
+                                    .zoom(18.0f)
+                                    .build()
+                            )
+                        )
                     }
                 }
 
@@ -202,10 +219,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             })
     }//private fun setupFirebaseDatabase()
 
-    private fun makeNuwMarker(user : MyUser, uid : String): Marker? {
+    private fun makeNewMarker(user : MyUser, uid : String): Marker? {
         val marker = googleMap.addMarker(
             MarkerOptions().position(LatLng(user.latitude ?: 0.0 ,user.longitude ?: 0.0)).title(user.name.orEmpty())
         ) ?: return null
+
+        marker.tag = uid
 
         //마커에 이미지 넣기
         Glide.with(this).asBitmap()
@@ -234,4 +253,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         return marker
     }//private fun makeNuwMarker(user : MyUser, uid : String): Marker?
 
-}//class MainActivity : AppCompatActivity()
+    override fun onMarkerClick(p0: Marker): Boolean {
+        Log.d("onMarkerClick", "Click")
+
+        trackingUserId = p0.tag as? String ?: ""
+
+        return false
+    }
+
+}
