@@ -34,11 +34,13 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.kakao.sdk.common.util.Utility
 import mhha.sample.sharemylocation.databinding.ActivityMapBinding
@@ -103,6 +105,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         getRequestLocationPermission()
+        setupEmojiAnimationView()
         setupFirebaseDatabase()
 
 //        startActivity(Intent(this, LoginActivity::class.java))
@@ -117,6 +120,34 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
     override fun onPause() {
         super.onPause()
         fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun setupEmojiAnimationView(){
+        //이모지 리액션 보내기
+        binding.emojiLottieAnimationView.setOnClickListener {
+            if(trackingUserId != ""){
+                val lastEmoji = mutableMapOf<String, Any>()
+                lastEmoji["type"] = "star"
+                lastEmoji["lastModifier"] = System.currentTimeMillis()
+                Firebase.database.reference.child("Emoji").child(trackingUserId).updateChildren(lastEmoji)
+            }
+            binding.emojiLottieAnimationView.playAnimation()
+            binding.dummyLottieAnimationView.animate()
+                .scaleX(3f)
+                .scaleY(3f)
+                .alpha(0f)
+                .withStartAction {
+                    binding.dummyLottieAnimationView.scaleX = 1f
+                    binding.dummyLottieAnimationView.scaleY = 1f
+                    binding.dummyLottieAnimationView.alpha = 1f
+                }.withEndAction {
+                    binding.dummyLottieAnimationView.scaleX = 1f
+                    binding.dummyLottieAnimationView.scaleY = 1f
+                    binding.dummyLottieAnimationView.alpha = 1f
+                }.start()
+        }
+        binding.centerLottieAnimationView.speed = 3f
+        binding.emojiLottieAnimationView.speed = 3f
     }
 
     override fun onMapReady(p0: GoogleMap) {
@@ -215,7 +246,28 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
                 override fun onCancelled(error: DatabaseError) {
                 }
+            })
 
+        //다른 사람이 나를 클릭 시 이모지 반응
+        Firebase.database.reference.child("Emoji").child(Firebase.auth.currentUser?.uid ?: "")
+            .addValueEventListener(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    binding.centerLottieAnimationView.playAnimation()
+
+                    binding.centerLottieAnimationView.animate()
+                        .scaleX(7f)
+                        .scaleY(7f)
+                        .alpha(0.3f)
+                        .setDuration(binding.centerLottieAnimationView.duration / 3)
+                        .withEndAction {
+                            binding.centerLottieAnimationView.scaleX = 0f
+                            binding.centerLottieAnimationView.scaleY = 0f
+                            binding.centerLottieAnimationView.alpha = 1f
+                        }.start()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
             })
     }//private fun setupFirebaseDatabase()
 
@@ -257,6 +309,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         Log.d("onMarkerClick", "Click")
 
         trackingUserId = p0.tag as? String ?: ""
+
+        val bottomSheetbehavior = BottomSheetBehavior.from(binding.emojiBottomSheetLayout)
+        bottomSheetbehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
 
         return false
     }
