@@ -106,11 +106,18 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
         getRequestLocationPermission()
         setupEmojiAnimationView()
+        setupCurrentLocationView()
         setupFirebaseDatabase()
 
 //        startActivity(Intent(this, LoginActivity::class.java))
 
     }//override fun onCreate(savedInstanceState: Bundle?)
+
+    private fun setupCurrentLocationView(){
+        binding.currentLocationButton.setOnClickListener {
+            moveLastLocation()
+        }
+    }//private fun setupCurrentLocationView()
 
     override fun onResume() {
         super.onResume()
@@ -169,11 +176,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
     }//override fun onMapReady(p0: GoogleMap)
 
-    fun createLocationRequest(): LocationRequest {
+    private fun createLocationRequest(): LocationRequest {
         return LocationRequest
             .Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
             .build()
     }
+
     private fun getCurrentLocation(){
         val locationinfo = createLocationRequest()
         if (ActivityCompat.checkSelfPermission(
@@ -188,12 +196,27 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             return
         }
         fusedLocationClient.requestLocationUpdates(locationinfo,locationCallback, Looper.getMainLooper())
+        moveLastLocation()
+    }//private fun getCurrentLocation()
+
+    private fun moveLastLocation(){
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            getRequestLocationPermission()
+            return
+        }
         fusedLocationClient.lastLocation.addOnSuccessListener {
             googleMap.animateCamera(
                 CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 16.0f)
             )
         }
-    }//private fun getCurrentLocation()
+    }
 
     private fun getRequestLocationPermission(){
         locationPermission.launch(
@@ -252,8 +275,8 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         Firebase.database.reference.child("Emoji").child(Firebase.auth.currentUser?.uid ?: "")
             .addValueEventListener(object : ValueEventListener{
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    binding.centerLottieAnimationView.playAnimation()
 
+                    binding.centerLottieAnimationView.playAnimation()
                     binding.centerLottieAnimationView.animate()
                         .scaleX(7f)
                         .scaleY(7f)
