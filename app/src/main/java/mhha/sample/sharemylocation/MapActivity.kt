@@ -115,6 +115,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
     private fun setupCurrentLocationView(){
         binding.currentLocationButton.setOnClickListener {
+            trackingUserId = ""
             moveLastLocation()
         }
     }//private fun setupCurrentLocationView()
