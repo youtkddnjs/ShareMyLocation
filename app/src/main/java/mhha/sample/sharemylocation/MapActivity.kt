@@ -273,9 +273,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
         //다른 사람이 나를 클릭 시 이모지 반응
         Firebase.database.reference.child("Emoji").child(Firebase.auth.currentUser?.uid ?: "")
-            .addValueEventListener(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-
+            .addChildEventListener(object : ChildEventListener{
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                }
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                     binding.centerLottieAnimationView.playAnimation()
                     binding.centerLottieAnimationView.animate()
                         .scaleX(7f)
@@ -287,6 +288,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                             binding.centerLottieAnimationView.scaleY = 0f
                             binding.centerLottieAnimationView.alpha = 1f
                         }.start()
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
